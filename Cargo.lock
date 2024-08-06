@@ -1032,13 +1032,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f3cb5ba0dc43242ce17de99c180e96db90b235b8a9fdc9543c96d2209116bd9f"
 
 [[package]]
-name = "safetensors"
-version = "0.4.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7725d4d98fa515472f43a6e2bbf956c48e06b89bb50593a040e5945160214450"
+name = "safemetadata"
+version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "clap",
+ "hf-hub",
+ "reqwest",
  "serde",
  "serde_json",
+ "url",
 ]
 
 [[package]]
@@ -1115,20 +1118,6 @@ dependencies = [
  "itoa",
  "ryu",
  "serde",
-]
-
-[[package]]
-name = "sftsrs"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
- "hf-hub",
- "reqwest",
- "safetensors",
- "serde",
- "serde_json",
- "url",
 ]
 
 [[package]]
