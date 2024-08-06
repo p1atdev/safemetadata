@@ -4,9 +4,7 @@ use anyhow::Result;
 use hf_hub::api::sync::Api;
 use hf_hub::{Repo, RepoType};
 use std::io::{Read, Seek, SeekFrom};
-use std::str::FromStr;
 use std::{fs::File, path::Path};
-use url::Url;
 
 // ref: https://huggingface.co/docs/safetensors/index#format
 
@@ -124,12 +122,12 @@ mod test_local {
 }
 
 pub struct RemoteParser {
-    url: Url,
+    url: String,
     token: Option<String>,
 }
 
 impl RemoteParser {
-    pub fn new(url: Url) -> Self {
+    pub fn new(url: String) -> Self {
         Self {
             url: url,
             token: None,
@@ -147,7 +145,7 @@ impl RemoteParser {
         let url = repo.url(filename);
 
         Self {
-            url: Url::from_str(&url).unwrap(),
+            url: url.to_string(),
             token: token.clone(),
         }
     }

@@ -1,8 +1,6 @@
 use anyhow::Result;
-use hf_hub::Cache;
 use reqwest::blocking::Client;
 use reqwest::header::{HeaderMap, HeaderValue, RANGE};
-use url::Url;
 
 /// Insert the Hugging Face token into the headers
 fn insert_hf_token_header(token: &Option<String>, headers: &mut HeaderMap) -> Result<HeaderMap> {
@@ -25,7 +23,7 @@ fn insert_range_bytes_header(headers: &mut HeaderMap, start: u64, end: u64) -> R
 }
 
 pub fn fetch_remote_bytes(
-    url: &Url,
+    url: &String,
     token: &Option<String>,
     start: u64,
     length: u64,
@@ -79,7 +77,7 @@ mod test {
 
     #[test]
     fn test_fetch_remote_bytes() {
-        let url = Url::parse("https://example.com").unwrap();
+        let url = "https://example.com".to_string();
 
         let bytes = fetch_remote_bytes(&url, &None, 0, 8).unwrap();
         println!("{:?}", bytes);
