@@ -1,10 +1,11 @@
+mod fetch;
 mod metadata;
-mod parse;
+mod parser;
 mod utils;
 
 use anyhow::{Ok, Result};
 use clap::{Parser, Subcommand};
-use parse::parse_header;
+use parser::LocalParser;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -32,9 +33,9 @@ fn main() -> Result<()> {
 
     match args.command {
         Some(Commands::Show { file_path }) => {
-            let header = parse_header(&file_path)?;
+            // let header = parse_header(&file_path)?;
 
-            println!("{:?}", header);
+            // println!("{:?}", header);
         }
         None => {
             println!("No command provided");
