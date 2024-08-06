@@ -23,7 +23,7 @@ fn read_buffer<P: AsRef<Path>>(path: &P, start: u64, end: u64) -> Result<Vec<u8>
 }
 
 /// Metadata parser trait
-trait MetadataParser {
+pub trait MetadataParser {
     fn parse_header(&self) -> Result<Header>;
 }
 

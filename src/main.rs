@@ -5,7 +5,8 @@ mod utils;
 
 use anyhow::{Ok, Result};
 use clap::{Parser, Subcommand};
-use parser::LocalParser;
+use hf_hub::RepoType;
+use parser::{LocalParser, MetadataParser, RemoteParser};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -20,9 +21,10 @@ enum Commands {
     Show {
         /// The path of the safetensors file
         file_path: String,
-        // /// Repository id on HuggingFace hub
-        // #[clap(long)]
-        // repo_id: Option<String>,
+
+        /// Repository id on HuggingFace hub
+        #[clap(long)]
+        repo_id: Option<String>,
     },
 }
 
@@ -32,10 +34,19 @@ fn main() -> Result<()> {
     println!("{:?}", args);
 
     match args.command {
-        Some(Commands::Show { file_path }) => {
-            // let header = parse_header(&file_path)?;
+        Some(Commands::Show { file_path, repo_id }) => {
+            if repo_id.is_some() {
+                let parser =
+                    RemoteParser::from_hub(&repo_id.unwrap(), RepoType::Model, &file_path, &None);
 
-            // println!("{:?}", header);
+                let header = parser.parse_header()?;
+                println!("{:?}", header);
+            } else {
+                let parser = LocalParser::new(&file_path);
+
+                let header = parser.parse_header()?;
+                println!("{:?}", header);
+            }
         }
         None => {
             println!("No command provided");
