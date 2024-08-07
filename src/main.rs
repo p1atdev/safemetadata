@@ -7,7 +7,7 @@ mod utils;
 use anyhow::{Ok, Result};
 use clap::{Parser, Subcommand};
 use hf_hub::RepoType;
-use metadata::{Header, Weight};
+use metadata::Header;
 use parser::{LocalParser, MetadataParser, RemoteParser};
 use table::InfoTable;
 

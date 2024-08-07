@@ -1,37 +1,8 @@
-use super::table::InfoTable;
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use std::collections::{BTreeMap, HashMap};
-use std::{fmt::Display, vec};
-use tabled::Table;
+use std::fmt::Display;
 
 pub type Weights = BTreeMap<String, Weight>;
-
-impl InfoTable for Weights {
-    fn format_table(&self) -> Table {
-        let mut builder = self.create_builder();
-
-        builder.push_record(vec![
-            "Parameter Name".to_string(),
-            "DType".to_string(),
-            "Shape".to_string(),
-        ]);
-
-        for (name, weight) in self.iter() {
-            // TODO: prettify the parameter names?
-
-            builder.push_record(vec![
-                name.to_string(),
-                weight.dtype.to_string(),
-                format!("{:?}", weight.shape),
-            ]);
-        }
-
-        let table = self.build_table(builder);
-
-        table
-    }
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Header {
@@ -343,28 +314,4 @@ pub struct Metadata {
     /// Other metadata information.
     #[serde(flatten)]
     pub others: HashMap<String, String>,
-}
-
-impl InfoTable for ModelSpec {
-    fn format_table(&self) -> Table {
-        let mut builder = self.create_builder();
-
-        builder.push_record(vec!["Key".to_string(), "Value".to_string()]);
-
-        let value = serde_json::to_value(&self).unwrap();
-
-        if let Value::Object(map) = value {
-            for (key, value) in map {
-                if value.is_null() {
-                    continue;
-                }
-
-                builder.push_record(vec![key.to_string(), value.to_string()]);
-            }
-        }
-
-        let table = self.build_table(builder);
-
-        table
-    }
 }
