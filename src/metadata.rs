@@ -1,5 +1,8 @@
+use super::table::InfoTable;
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+use serde_json::Value;
+use std::{collections::HashMap, fmt::Display, vec};
+use tabled::Table;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Header {
@@ -41,6 +44,22 @@ pub enum Dtype {
     Uint8,
     #[serde(rename = "BOOL")]
     Bool,
+}
+
+impl Display for Dtype {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Dtype::Fp64 => write!(f, "float64"),
+            Dtype::Fp32 => write!(f, "float32"),
+            Dtype::Fp16 => write!(f, "float16"),
+            Dtype::Bf16 => write!(f, "bfloat16"),
+            Dtype::Int64 => write!(f, "int64"),
+            Dtype::Int32 => write!(f, "int32"),
+            Dtype::Int16 => write!(f, "int16"),
+            Dtype::Uint8 => write!(f, "uint8"),
+            Dtype::Bool => write!(f, "bool"),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -283,4 +302,28 @@ pub struct Metadata {
     /// Other metadata information.
     #[serde(flatten)]
     pub others: HashMap<String, String>,
+}
+
+impl InfoTable for ModelSpec {
+    fn format_table(&self) -> Table {
+        let mut builder = self.create_builder();
+
+        builder.push_record(vec!["Key".to_string(), "Value".to_string()]);
+
+        let value = serde_json::to_value(&self).unwrap();
+
+        if let Value::Object(map) = value {
+            for (key, value) in map {
+                if value.is_null() {
+                    continue;
+                }
+
+                builder.push_record(vec![key.to_string(), value.to_string()]);
+            }
+        }
+
+        let table = self.build_table(builder);
+
+        table
+    }
 }
