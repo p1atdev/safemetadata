@@ -1,8 +1,37 @@
 use super::table::InfoTable;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::{collections::HashMap, fmt::Display, vec};
+use std::collections::{BTreeMap, HashMap};
+use std::{fmt::Display, vec};
 use tabled::Table;
+
+pub type Weights = BTreeMap<String, Weight>;
+
+impl InfoTable for Weights {
+    fn format_table(&self) -> Table {
+        let mut builder = self.create_builder();
+
+        builder.push_record(vec![
+            "Parameter Name".to_string(),
+            "DType".to_string(),
+            "Shape".to_string(),
+        ]);
+
+        for (name, weight) in self.iter() {
+            // TODO: prettify the parameter names?
+
+            builder.push_record(vec![
+                name.to_string(),
+                weight.dtype.to_string(),
+                format!("{:?}", weight.shape),
+            ]);
+        }
+
+        let table = self.build_table(builder);
+
+        table
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Header {
@@ -12,7 +41,7 @@ pub struct Header {
 
     /// The model's weights, stored as a map from tensor names to weights.
     #[serde(flatten)]
-    pub weights: HashMap<String, Weight>,
+    pub weights: Weights,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -74,6 +103,18 @@ pub enum TensorFormart {
     Paddle,
     #[serde(rename = "flax")]
     Flax,
+}
+
+impl Display for TensorFormart {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TensorFormart::PyTorch => write!(f, "PyTorch"),
+            TensorFormart::TensorFlow => write!(f, "TensorFlow"),
+            TensorFormart::NumPy => write!(f, "NumPy"),
+            TensorFormart::Paddle => write!(f, "Paddle"),
+            TensorFormart::Flax => write!(f, "Flax"),
+        }
+    }
 }
 
 /// Stability AI Model Metadata Standard.
