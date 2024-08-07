@@ -195,5 +195,15 @@ mod test_remote {
             RepoType::Model,
             "model.safetensors"
         );
+        parse_header!(
+            "stabilityai/stable-diffusion-xl-base-1.0",
+            RepoType::Model,
+            "sd_xl_base_1.0_0.9vae.safetensors"
+        );
+        parse_header!(
+            "stabilityai/stable-diffusion-xl-base-1.0",
+            RepoType::Model,
+            "sd_xl_offset_example-lora_1.0.safetensors"
+        );
     }
 }

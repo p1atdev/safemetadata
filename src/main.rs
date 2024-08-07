@@ -25,6 +25,10 @@ enum Commands {
         /// Repository id on HuggingFace hub
         #[clap(long)]
         repo_id: Option<String>,
+
+        /// Show SAI modelspec
+        #[clap(long)]
+        modelspec: bool,
     },
 }
 
@@ -34,13 +38,22 @@ fn main() -> Result<()> {
     println!("{:?}", args);
 
     match args.command {
-        Some(Commands::Show { file_path, repo_id }) => {
+        Some(Commands::Show {
+            file_path,
+            repo_id,
+            modelspec,
+        }) => {
             if repo_id.is_some() {
                 let parser =
                     RemoteParser::from_hub(&repo_id.unwrap(), RepoType::Model, &file_path, &None);
 
                 let header = parser.parse_header()?;
-                println!("{:?}", header);
+
+                if modelspec {
+                    println!("{:?}", header.metadata.model_spec);
+                } else {
+                    println!("{:?}", header);
+                }
             } else {
                 let parser = LocalParser::new(&file_path);
 
