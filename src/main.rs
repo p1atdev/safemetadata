@@ -6,56 +6,59 @@ mod utils;
 
 use anyhow::{Ok, Result};
 use clap::{Parser, Subcommand};
-use hf_hub::RepoType;
+use hf_hub::{Cache, RepoType};
 use metadata::Header;
 use parser::{LocalParser, MetadataParser, RemoteParser};
 use table::InfoTable;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
-struct Args {
+struct CLI {
     #[command(subcommand)]
-    command: Option<Commands>,
+    command: Commands,
+}
+
+#[derive(Parser, Debug)]
+struct FileArgs {
+    /// The path of the safetensors file
+    file_path: String,
+
+    /// Repository id on HuggingFace hub
+    #[clap(long, short)]
+    repo_id: Option<String>,
+
+    /// HuggingFace API token
+    #[clap(long, short)]
+    token: Option<String>,
 }
 
 #[derive(Debug, Subcommand)]
 enum Commands {
     /// Show the parameter sizes of the model
-    Params {
-        /// The path of the safetensors file
-        file_path: String,
-
-        /// Repository id on HuggingFace hub
-        #[clap(long)]
-        repo_id: Option<String>,
-    },
+    Params(FileArgs),
 
     /// Show the layers of the model
-    Layers {
-        /// The path of the safetensors file
-        file_path: String,
-
-        /// Repository id on HuggingFace hub
-        #[clap(long)]
-        repo_id: Option<String>,
-    },
+    Layers(FileArgs),
 
     /// Show the Stability AI Model Specification of the file
     #[clap(name = "modelspec")]
-    ModelSpec {
-        /// The path of the safetensors file
-        file_path: String,
-
-        /// Repository id on HuggingFace hub
-        #[clap(long)]
-        repo_id: Option<String>,
-    },
+    ModelSpec(FileArgs),
 }
 
-fn parse_header(repo_id: Option<String>, file_path: String) -> Result<Header> {
+fn parse_header(args: FileArgs) -> Result<Header> {
+    let FileArgs {
+        file_path,
+        repo_id,
+        token,
+    } = args;
+
     match repo_id {
         Some(repo_id) => {
-            let parser = RemoteParser::from_hub(&repo_id, RepoType::Model, &file_path, &None);
+            let token = match token {
+                Some(token) => Some(token),       // do nothing
+                None => Cache::default().token(), // load token from cache
+            };
+            let parser = RemoteParser::from_hub(&repo_id, RepoType::Model, &file_path, &token);
             parser.parse_header()
         }
         None => {
@@ -66,13 +69,11 @@ fn parse_header(repo_id: Option<String>, file_path: String) -> Result<Header> {
 }
 
 fn main() -> Result<()> {
-    let args = Args::parse();
-
-    // println!("{:?}", args);
+    let args = CLI::parse();
 
     match args.command {
-        Some(Commands::Params { file_path, repo_id }) => {
-            let header = parse_header(repo_id, file_path)?;
+        Commands::Params(file_args) => {
+            let header = parse_header(file_args)?;
 
             let params = header.weights.values().fold(0, |sum: i64, weight| {
                 sum + weight.shape.iter().product::<i64>()
@@ -81,8 +82,8 @@ fn main() -> Result<()> {
 
             println!("Total parameters: {}{} params", params, unit);
         }
-        Some(Commands::Layers { file_path, repo_id }) => {
-            let header = parse_header(repo_id, file_path)?;
+        Commands::Layers(file_args) => {
+            let header = parse_header(file_args)?;
 
             let format = match header.metadata.format {
                 Some(format) => format.to_string(),
@@ -92,8 +93,8 @@ fn main() -> Result<()> {
             println!("Tensor format: {}", format);
             println!("{}", header.weights.format_table());
         }
-        Some(Commands::ModelSpec { file_path, repo_id }) => {
-            let header = parse_header(repo_id, file_path)?;
+        Commands::ModelSpec(file_args) => {
+            let header = parse_header(file_args)?;
 
             if let Some(modelspec) = header.metadata.model_spec {
                 println!("Stability AI Model Metadata Standard Specification");
@@ -101,9 +102,6 @@ fn main() -> Result<()> {
             } else {
                 println!("No modelspec found in the file.");
             }
-        }
-        None => {
-            println!("No command provided");
         }
     }
 
