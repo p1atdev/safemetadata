@@ -40,6 +40,10 @@ pub enum Dtype {
     Int32,
     #[serde(rename = "I16")]
     Int16,
+    #[serde(rename = "I8")]
+    Int8,
+    #[serde(rename = "I4")]
+    Int4,
     #[serde(rename = "U8")]
     Uint8,
     #[serde(rename = "U4")]
@@ -62,6 +66,8 @@ impl Display for Dtype {
             Dtype::Int64 => write!(f, "int64"),
             Dtype::Int32 => write!(f, "int32"),
             Dtype::Int16 => write!(f, "int16"),
+            Dtype::Int8 => write!(f, "int8"),
+            Dtype::Int4 => write!(f, "int4"),
             Dtype::Uint8 => write!(f, "uint8"),
             Dtype::Uint4 => write!(f, "uint4"),
             Dtype::Bool => write!(f, "bool"),
