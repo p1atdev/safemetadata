@@ -85,22 +85,31 @@ fn main() -> Result<()> {
         Commands::Layers(file_args) => {
             let header = parse_header(file_args)?;
 
-            let format = match header.metadata.format {
-                Some(format) => format.to_string(),
-                None => "Unknown format".to_string(),
-            };
+            if let Some(metadata) = header.metadata {
+                match metadata.format {
+                    Some(format) => {
+                        println!("Tensor format: {}", format);
+                    }
+                    None => {
+                        println!("Unknown tensor format")
+                    }
+                };
+            }
 
-            println!("Tensor format: {}", format);
             println!("{}", header.weights.format_table());
         }
         Commands::ModelSpec(file_args) => {
             let header = parse_header(file_args)?;
 
-            if let Some(modelspec) = header.metadata.model_spec {
-                println!("Stability AI Model Metadata Standard Specification");
-                println!("{}", modelspec.format_table());
+            if let Some(metadata) = header.metadata {
+                if let Some(modelspec) = metadata.model_spec {
+                    println!("Stability AI Model Metadata Standard Specification");
+                    println!("{}", modelspec.format_table());
+                } else {
+                    println!("No modelspec found in the file.");
+                }
             } else {
-                println!("No modelspec found in the file.");
+                println!("No metadata found in the file.");
             }
         }
     }

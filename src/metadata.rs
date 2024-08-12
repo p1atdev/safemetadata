@@ -8,7 +8,7 @@ pub type Weights = BTreeMap<String, Weight>;
 pub struct Header {
     /// Metadata information about the model.
     #[serde(rename = "__metadata__")]
-    pub metadata: Metadata,
+    pub metadata: Option<Metadata>,
 
     /// The model's weights, stored as a map from tensor names to weights.
     #[serde(flatten)]
