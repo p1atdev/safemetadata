@@ -108,3 +108,26 @@ Stability AI Model Metadata Standard Specification
 │ modelspec.sai_model_spec  │ "1.0.0"                                    │
 ...
 ```
+
+### Metadata
+
+Shows all metadata (`__metadata__` field) of the model.
+
+```bash
+safemtetadata metadata ./sd_xl_base_1.0_0.9vae.safetensors
+```
+
+or
+
+```bash
+safemtetadata metadata sd_xl_base_1.0_0.9vae.safetensors --repo-id stabilityai/stable-diffusion-xl-base-1.0
+```
+
+
+### Clean metadata
+
+Removes metadata from the model. Only supports local files.
+
+```bash
+safemtetadata clean ./sd_xl_base_1.0_0.9vae.safetensors -o ./sd_xl_base_1.0_0.9vae-cleaned.safetensors
+```
