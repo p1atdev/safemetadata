@@ -1,7 +1,10 @@
+// ref: https://huggingface.co/docs/safetensors/index#format
+
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, HashMap};
 use std::fmt::Display;
 
+// {name: weight}
 pub type Weights = BTreeMap<String, Weight>;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -21,7 +24,7 @@ pub struct Weight {
 
     pub shape: Vec<i64>,
 
-    pub data_offsets: Vec<i64>,
+    pub data_offsets: [i64; 2], // [begin, end]
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

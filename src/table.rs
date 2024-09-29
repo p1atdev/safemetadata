@@ -1,4 +1,4 @@
-use crate::metadata::{ModelSpec, Weights};
+use crate::metadata::{Metadata, ModelSpec, Weights};
 use serde_json::Value;
 use std::vec;
 use tabled::{
@@ -35,6 +35,30 @@ pub trait InfoTable {
         );
 
         table.clone()
+    }
+}
+
+impl InfoTable for Metadata {
+    fn format_table(&self) -> Table {
+        let mut builder = self.create_builder();
+
+        builder.push_record(vec!["Key".to_string(), "Value".to_string()]);
+
+        let value = serde_json::to_value(&self).unwrap();
+
+        if let Value::Object(map) = value {
+            for (key, value) in map {
+                if value.is_null() {
+                    continue;
+                }
+
+                builder.push_record(vec![key.to_string(), value.to_string()]);
+            }
+        }
+
+        let table = self.build_table(builder);
+
+        table
     }
 }
 

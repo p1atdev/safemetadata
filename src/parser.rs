@@ -4,6 +4,7 @@ use anyhow::Result;
 use hf_hub::api::sync::Api;
 use hf_hub::{Repo, RepoType};
 use std::io::{Read, Seek, SeekFrom};
+use std::path::PathBuf;
 use std::{fs::File, path::Path};
 
 // ref: https://huggingface.co/docs/safetensors/index#format
@@ -26,20 +27,23 @@ pub trait MetadataParser {
 }
 
 /// Read safetensors files from the local file system.
-pub struct LocalParser<P: AsRef<Path>> {
-    path: P,
+#[derive(Debug, Clone)]
+pub struct LocalParser {
+    path: PathBuf,
 }
 
-impl<P: AsRef<Path>> LocalParser<P> {
-    pub fn new(path: P) -> Self {
-        Self { path: path }
+impl LocalParser {
+    pub fn new<P: AsRef<Path>>(path: P) -> Self {
+        Self {
+            path: path.as_ref().to_path_buf(),
+        }
     }
 
     /// Get the header size of the safetensors file.
     ///
     /// The header size chunk is the first 8 bytes of the file,
     /// which is the u64 int that represents the size of the header chunk.
-    fn get_header_size(&self) -> Result<u64> {
+    pub fn get_header_size(&self) -> Result<u64> {
         let buffer: [u8; 8] = read_buffer(&self.path, 0, 8)?.try_into().unwrap();
 
         // as usize
@@ -59,7 +63,7 @@ impl<P: AsRef<Path>> LocalParser<P> {
     }
 }
 
-impl<P: AsRef<Path>> MetadataParser for LocalParser<P> {
+impl MetadataParser for LocalParser {
     /// Parse the header of the safetensors file
     fn parse_header(&self) -> Result<Header> {
         let header_size = &self.get_header_size()?;
@@ -121,6 +125,7 @@ mod test_local {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct RemoteParser {
     url: String,
     token: Option<String>,

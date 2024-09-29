@@ -4,11 +4,14 @@ mod parser;
 mod table;
 mod utils;
 
+use std::path::PathBuf;
+
 use anyhow::{Ok, Result};
 use clap::{Parser, Subcommand};
 use hf_hub::{Cache, RepoType};
 use metadata::Header;
 use parser::{LocalParser, MetadataParser, RemoteParser};
+use safemetadata::file::SafetensorsFile;
 use table::InfoTable;
 
 #[derive(Parser, Debug)]
@@ -32,6 +35,16 @@ struct FileArgs {
     token: Option<String>,
 }
 
+#[derive(Parser, Debug)]
+struct CleanFileArgs {
+    /// The path of the safetensors file
+    file_path: PathBuf,
+
+    /// Output path
+    #[clap(long, short)]
+    output: PathBuf,
+}
+
 #[derive(Debug, Subcommand)]
 enum Commands {
     /// Show the parameter sizes of the model
@@ -43,6 +56,14 @@ enum Commands {
     /// Show the Stability AI Model Specification of the file
     #[clap(name = "modelspec")]
     ModelSpec(FileArgs),
+
+    /// Show metadata field
+    #[clap(name = "metadata")]
+    Metadata(FileArgs),
+
+    /// Remove metadata field
+    #[clap(name = "clean")]
+    Clean(CleanFileArgs),
 }
 
 fn parse_header(args: FileArgs) -> Result<Header> {
@@ -111,6 +132,25 @@ fn main() -> Result<()> {
             } else {
                 println!("No metadata found in the file.");
             }
+        }
+        Commands::Metadata(file_args) => {
+            let header = parse_header(file_args)?;
+
+            if let Some(metadata) = header.metadata {
+                println!("Metadata");
+                println!("{}", metadata.format_table());
+            } else {
+                println!("No metadata found in the file.");
+            }
+        }
+        Commands::Clean(file_args) => {
+            let CleanFileArgs { file_path, output } = file_args;
+
+            let safetensors = SafetensorsFile::new(&file_path);
+
+            safetensors.clear_metadata(&output)?;
+
+            println!("Metadata removed successfully.");
         }
     }
 
