@@ -37,18 +37,17 @@ impl SafetensorsFile {
 
         // remove metadata
         let mut header = self.parser.parse_header()?;
+        if let Some(metadata) = header.metadata {
+            let bytes = serde_json::to_vec(&metadata)?.len() as u64;
+            println!("Found metadata: {} bytes", bytes);
+        } else {
+            println!("No metadata found");
+        }
+
         header.metadata = None;
 
         let new_header_buffer = serde_json::to_vec(&header)?;
         let new_header_size = new_header_buffer.len() as u64; // smaller
-
-        let offset_diff = (header_buffer_size - new_header_size) as i64;
-
-        // offset the weights index
-        header.weights.iter_mut().for_each(|(_name, weight)| {
-            let [begin, end] = weight.data_offsets;
-            weight.data_offsets = [begin - offset_diff, end - offset_diff];
-        });
 
         // first part: header size [u8; 8]
         writer.write_all(&new_header_size.to_le_bytes())?;
@@ -69,8 +68,6 @@ impl SafetensorsFile {
             .truncate(false)
             .open(&output_path)?;
         io::copy(&mut source_file, &mut dst_file)?;
-
-        println!("Removed {} bytes of metadata", offset_diff);
 
         Ok(())
     }
