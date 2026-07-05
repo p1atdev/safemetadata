@@ -30,7 +30,7 @@ pub trait InfoTable {
         table.with(Style::rounded());
         table.with(
             Settings::empty()
-                .with(Width::wrap(width).priority(PriorityMax))
+                .with(Width::wrap(width).priority(PriorityMax::left()))
                 .with(Width::increase(width)),
         );
 
