@@ -1,8 +1,5 @@
 # safemetadata
 
-> [!WARNING]
-> WIP
-
 A CLI tool for viewing metadata of [🤗safetensors](https://github.com/huggingface/safetensors) files.
 
 - Supports viewing model parameters, layers and modelspec.
@@ -12,6 +9,12 @@ A CLI tool for viewing metadata of [🤗safetensors](https://github.com/huggingf
 
 ```bash
 cargo install --git https://github.com/p1atdev/safemetadata
+```
+
+## Skills
+
+```bunx
+bunx skills add p1atdev/safemetadata
 ```
 
 ## Usage
