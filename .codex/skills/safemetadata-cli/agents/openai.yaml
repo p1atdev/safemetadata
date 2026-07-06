@@ -1,0 +1,4 @@
+interface:
+  display_name: "Safemetadata CLI"
+  short_description: "Run safemetadata CLI from a fixed git revision"
+  default_prompt: "Use $safemetadata-cli to inspect a safetensors file with safemetadata."

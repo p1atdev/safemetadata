@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly REPO_URL="https://github.com/p1atdev/safemetadata.git"
+readonly REVISION="dae14463c0519beb4a9abc5becccc0b7b3f7cf16"
+readonly CRATE_NAME="safemetadata"
+readonly BIN_NAME="safemetadata"
+readonly MARKER_NAME=".safemetadata-cli-revision"
+
+resolve_root() {
+  if [[ -n "${SAFEMETADATA_CLI_ROOT:-}" ]]; then
+    printf '%s\n' "$SAFEMETADATA_CLI_ROOT"
+    return
+  fi
+
+  if [[ -z "${HOME:-}" ]]; then
+    printf 'SAFEMETADATA_CLI_ROOT is unset and HOME is unavailable.\n' >&2
+    exit 1
+  fi
+
+  printf '%s\n' "$HOME/.cache/codex/safemetadata-cli/$REVISION"
+}
+
+print_install_command() {
+  local root="$1"
+  printf 'cargo install --git %q --rev %q --locked --bin %q --root %q %q\n' \
+    "$REPO_URL" "$REVISION" "$BIN_NAME" "$root" "$CRATE_NAME"
+}
+
+ensure_installed() {
+  local root="$1"
+  local bin_path="$root/bin/$BIN_NAME"
+  local marker_path="$root/$MARKER_NAME"
+  local marker_value=""
+
+  if [[ -x "$bin_path" ]]; then
+    if [[ -f "$marker_path" ]]; then
+      marker_value="$(<"$marker_path")"
+    fi
+
+    if [[ "$marker_value" == "$REVISION" ]]; then
+      return
+    fi
+
+    printf 'Refusing to run cached binary without matching revision marker: %s\n' "$bin_path" >&2
+    printf 'Expected %s to contain: %s\n' "$marker_path" "$REVISION" >&2
+    exit 1
+  fi
+
+  if ! command -v cargo >/dev/null 2>&1; then
+    printf 'cargo is required to install %s at %s.\n' "$BIN_NAME" "$REVISION" >&2
+    exit 127
+  fi
+
+  mkdir -p "$root"
+  cargo install --git "$REPO_URL" --rev "$REVISION" --locked --bin "$BIN_NAME" --root "$root" "$CRATE_NAME"
+
+  if [[ ! -x "$bin_path" ]]; then
+    printf 'cargo install completed, but expected binary was not found: %s\n' "$bin_path" >&2
+    exit 1
+  fi
+
+  printf '%s\n' "$REVISION" > "$marker_path"
+}
+
+main() {
+  local root
+  root="$(resolve_root)"
+
+  case "${1:-}" in
+    --revision)
+      printf '%s\n' "$REVISION"
+      return
+      ;;
+    --print-install-command)
+      print_install_command "$root"
+      return
+      ;;
+  esac
+
+  ensure_installed "$root"
+  exec "$root/bin/$BIN_NAME" "$@"
+}
+
+main "$@"
